@@ -638,3 +638,42 @@ class Stroke:
         return ret / len(self.points)
 
     # You can (and should) define more features here
+
+
+test = StrokeLabeler()
+test.trainHMMDir("../trainingFiles/")
+file1 = "../trainingFiles/0128_1.6.1.labeled.xml"
+file2 = "../trainingFiles/0128_1.7.1.labeled.xml"
+file3 = "../trainingFiles/9171_3.4.1.labeled.xml"
+file4 = "../trainingFiles/4242_2.6.1.labeled.xml"
+file5 = "../trainingFiles/3141_4.2.1.labeled.xml"
+testFiles = [file1, file2, file3, file4, file5]
+trueLabels = []
+classifications = []
+# curves = []
+
+'''
+strokes, labels = test.loadLabeledFile(file1)
+for stroke in strokes:
+    curves.append(stroke.sumOfCurvature())
+'''
+
+for file in testFiles:
+    strokes, labels = test.loadLabeledFile(file)
+    trueLabels += labels
+    classifications += test.labelStrokes(strokes)
+
+'''
+with open("curve_output.csv", 'w') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',', quotechar='"')
+    writer.writerow(labels)
+    writer.writerow(curves)
+'''
+
+result = test.confusion(self, trueLabels, classifications)
+with open("results_basic.txt", 'w') as f:
+    for key, value in result.items():
+        f.write(key)
+        for k, v in value.items():
+            f.write('%s:%s' % (k, v))
+        f.write('\n')

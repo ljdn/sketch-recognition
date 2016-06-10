@@ -4,6 +4,7 @@ import copy
 import guid
 import math
 import os
+import csv
 
 # A couple contants
 CONTINUOUS = 0
@@ -216,26 +217,27 @@ class StrokeLabeler:
         #    name to whether it is continuous or discrete
         # numFVals is a dictionary specifying the number of legal values for
         #    each discrete feature
-        self.featureNames = ['length']
-        self.contOrDisc = {'length': DISCRETE}
-        self.numFVals = { 'length': 2}
+        self.featureNames = ['length', 'stroke_time']      # add stroke_time
+        self.contOrDisc = {'length': DISCRETE, 'stroke_time': DISCRETE}
+        self.numFVals = { 'length': 2, 'stroke_time': 2}
 
-    def confusion(trueLabels, classifications):
+    def confusion(self, trueLabels, classifications):
         """ Returns dict where entry dict[i][j] reflects how many sketches of class i were classified as class j """
 
         true_drawing = {'drawing': 0, 'text': 0}
         true_text = {'drawing': 0, 'text': 0}
+
         for i in range(len(trueLabels)):
             if trueLabels[i] == 'drawing':
-                if classifications == 'drawing':
-                    true_drawing[drawing] += 1
+                if classifications[i] == 'drawing':
+                    true_drawing['drawing'] += 1
                 elif classifications[i] == 'text':
-                    true_drawing[text] += 1
+                    true_drawing['text'] += 1
             elif trueLabels[i] == 'text':
-                if classifications == 'drawing':
-                    true_text[drawing] += 1
+                if classifications[i] == 'drawing':
+                    true_text['drawing'] += 1
                 elif classifications[i] == 'text':
-                    true_text[text] += 1
+                    true_text['text'] += 1
 
         return {'drawing': true_drawing, 'text': true_text}
 
@@ -300,6 +302,11 @@ class StrokeLabeler:
                 d['length'] = 0
             else:
                 d['length'] = 1
+
+            t = s.stroke_time()
+            d['stroke_time'] = 0 if t < 200 else 1
+
+            # c = s.sumOfCurvature()
 
             # We can add more features here just by adding them to the dictionary
             # d as we did with length.  Remember that when you add features,
@@ -575,6 +582,19 @@ class Stroke:
 
 
     # Feature functions follow this line
+    def height_width(self):
+        ''' Return stroke height/width ratio '''
+        width = max([point[0] for point in self.points]) - min([point[0] for point in self.points]) + 1.0
+        height = max([point[1] for point in self.points]) - min([point[1] for point in self.points]) + 1.0
+        # print [point[0] for point in self.points]
+        return height/width
+
+    def stroke_time(self):
+        ''' Return time it took to draw stroke '''
+        start = min([point[2] for point in self.points])
+        end = max([point[2] for point in self.points])
+        return end - start
+
     def length( self ):
         ''' Returns the length of the stroke '''
         ret = 0
@@ -638,3 +658,41 @@ class Stroke:
         return ret / len(self.points)
 
     # You can (and should) define more features here
+
+test = StrokeLabeler()
+test.trainHMMDir("../trainingFiles/")
+file1 = "../trainingFiles/0128_1.6.1.labeled.xml"
+file2 = "../trainingFiles/0128_1.7.1.labeled.xml"
+file3 = "../trainingFiles/9171_3.4.1.labeled.xml"
+file4 = "../trainingFiles/4242_2.6.1.labeled.xml"
+file5 = "../trainingFiles/3141_4.2.1.labeled.xml"
+testFiles = [file1, file2, file3, file4, file5]
+trueLabels = []
+classifications = []
+# curves = []
+
+'''
+strokes, labels = test.loadLabeledFile(file1)
+for stroke in strokes:
+    curves.append(stroke.sumOfCurvature())
+'''
+
+for file in testFiles:
+    strokes, labels = test.loadLabeledFile(file)
+    trueLabels += labels
+    classifications += test.labelStrokes(strokes)
+
+'''
+with open("curve_output.csv", 'w') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',', quotechar='"')
+    writer.writerow(labels)
+    writer.writerow(curves)
+'''
+
+result = test.confusion(trueLabels, classifications)
+with open("results.txt", 'w') as f:
+    for key, value in result.items():
+        f.write(key)
+        for k, v in value.items():
+            f.write('%s:%s' % (k, v))
+        f.write('\n')
