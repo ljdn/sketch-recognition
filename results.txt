@@ -1,2 +1,9 @@
-texttext:85drawing:10
-drawingtext:90drawing:20
+With best version:
+text text: 85 drawing: 10    89%
+drawing text: 90 drawing: 20    82%
+
+Basic version:
+text text: 0 drawing: 52    0%
+drawing text: 5 drawing: 103    95%
+
+Originally I wanted to implement both height-width ratio and time to draw the stroke as features, however when I looked at the data for height-width ratio I found that there wasn't a super distinct split between the ratios for text and the ratios for drawings. So I decided to go with just the time it took to draw the stroke. I made this feature discrete and determined thresholds by looking at the data for a few training files. I used the average and median to come up with the different buckets for my algorithm. This performed much better than the basic classifier because the basic algorithm classified nearly everything as a drawing, resulting in a very high percentage for the drawing trueLabels but an appalling 0% correct out of the text trueLabels.

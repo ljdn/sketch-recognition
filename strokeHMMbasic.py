@@ -220,22 +220,22 @@ class StrokeLabeler:
         self.contOrDisc = {'length': DISCRETE}
         self.numFVals = { 'length': 2}
 
-    def confusion(trueLabels, classifications):
+    def confusion(self, trueLabels, classifications):
         """ Returns dict where entry dict[i][j] reflects how many sketches of class i were classified as class j """
 
         true_drawing = {'drawing': 0, 'text': 0}
         true_text = {'drawing': 0, 'text': 0}
         for i in range(len(trueLabels)):
             if trueLabels[i] == 'drawing':
-                if classifications == 'drawing':
-                    true_drawing[drawing] += 1
+                if classifications[i] == 'drawing':
+                    true_drawing['drawing'] += 1
                 elif classifications[i] == 'text':
-                    true_drawing[text] += 1
+                    true_drawing['text'] += 1
             elif trueLabels[i] == 'text':
-                if classifications == 'drawing':
-                    true_text[drawing] += 1
+                if classifications[i] == 'drawing':
+                    true_text['drawing'] += 1
                 elif classifications[i] == 'text':
-                    true_text[text] += 1
+                    true_text['text'] += 1
 
         return {'drawing': true_drawing, 'text': true_text}
 
@@ -670,7 +670,7 @@ with open("curve_output.csv", 'w') as csvfile:
     writer.writerow(curves)
 '''
 
-result = test.confusion(self, trueLabels, classifications)
+result = test.confusion(trueLabels, classifications)
 with open("results_basic.txt", 'w') as f:
     for key, value in result.items():
         f.write(key)
